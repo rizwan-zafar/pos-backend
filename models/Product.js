@@ -34,7 +34,7 @@ const Product = sequelize.define(
     },
     delivery: {
       type: DataTypes.FLOAT,
-      allowNull: false, 
+      allowNull: true, 
       defaultValue: 0,
     },
     description: {
@@ -57,7 +57,14 @@ const Product = sequelize.define(
         key: "id",
       },
     },
-
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "User",
+        key: "id",
+      },
+    },
     parent: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -104,6 +111,11 @@ Product.associate = (models) => {
     foreignKey: "category_id",
     as: "category",
   });
+  
+  Product.belongsTo(models.User, {
+    foreignKey: "user_id",
+    as: "user",
+  });
 };
 
 
@@ -111,5 +123,9 @@ Product.associate = (models) => {
 // Relation with Review
 Product.hasMany(Review, { foreignKey: "productId" });
 Review.belongsTo(Product, { foreignKey: "productId" ,  as: "product"});
+
+// Relation with User
+const User = require('./User');
+Product.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
 module.exports = Product;

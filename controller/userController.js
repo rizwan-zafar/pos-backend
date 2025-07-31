@@ -4,111 +4,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const { signInToken, tokenForVerify, sendEmail } = require("../config/auth");
 
-// const verifyEmailAddress = async (req, res) => {
-//   try {
-//     const existingUser = await User.findOne({
-//       where: { email: req.body.email },
-//     });
-
-//     if (existingUser) {
-//       return res.status(403).send({
-//         message: "This Email already Added!",
-//       });
-//     } else {
-//       const token = tokenForVerify(req.body);
-
-//       // Create User record in the database
-//       const newUser = await User.create({
-//         email: req.body.email,
-//         // Other relevant fields from req.body
-//       });
-
-//       const body = {
-//         from: `"Lidrah Team" <${process.env.EMAIL_USER}>`,
-//         to: req.body.email,
-//         subject: "Email Activation",
-//         html: `<h2>Hello ${req.body.email}</h2>
-//         <p>Verify your email address to complete the signup and login into your <strong>SardarStore</strong> account.</p>
-
-//         <p>This link will expire in <strong>15 minute</strong>.</p>
-
-//         <p style="margin-bottom:20px;">Click this link for active your account</p>
-
-//         <a href="${process.env.STORE_URL}/user/email-verification/${token}" style="background:#22c55e;color:white;border:1px solid #22c55e; padding: 10px 15px; border-radius: 4px; text-decoration:none;">Verify Account</a>
-
-//         <p style="margin-top: 35px;">If you did not initiate this request, please contact us immediately at support@sardarstore.com</p>
-
-//         <p style="margin-bottom:0px;">Thank you</p>
-//         <strong>SardarStore Team</strong>
-//                `,
-//       };
-
-//       const message = "Please check your email to verify!";
-//       sendEmail(body, res, message);
-//     }
-//   } catch (error) {
-//     console.error("Error occurred:", error);
-//     res.status(500).send({ message: "Internal Server Error" });
-//   }
-// };
-
-// const registerUser = async (req, res) => {
-//   // console.log('hello g');
-//   // const token = req.params.token;
-//   // const { name, email, password } = jwt.decode(token);
-//   // console.log('--------token', token);
-
-//   const { name, email, password } = req.body;
-//   try {
-//     const existingUser = await User.findOne({ where: { email: email } });
-
-//     if (existingUser) {
-//       const token = signInToken(existingUser);
-//       return res.send({
-//         token,
-//         user: existingUser,
-//         // name: existingUser.name,
-//         // email: existingUser.email,
-//         message: "Email Already Verified!",
-//       });
-//     }
-
-//     // if (token) {
-//     //   jwt.verify(token, process.env.JWT_SECRET_FOR_VERIFY, async (err, decoded) => {
-//     //     if (err) {
-//     //       return res.status(401).send({
-//     //         message: 'Token Expired, Please try again!',
-//     //       });
-//     //     } else {
-//     const newUser = await User.create({
-//       name,
-//       email,
-//       password: bcrypt.hashSync(password),
-//     });
-
-//     // console.log(newUser);
-
-//     const token = signInToken(newUser);
-//     res.send({
-//       token,
-//       user: newUser,
-//       // _id: newUser.id,
-//       // name: newUser.name,
-//       // email: newUser.email,
-//       message: "User Signup Successfully!",
-//       // message: 'Email Verified, Please Login Now!',
-//     });
-//     // }
-//     // }
-//     // );
-//     // }
-//   } catch (error) {
-//     console.error("Error registering user:", error);
-//     res.status(500).send({
-//       message: "An error occurred while registering the user.",
-//     });
-//   }
-// };
 
 const verifyEmailAddress = async (req, res) => {
   try {
@@ -948,17 +843,7 @@ const getAllUsers = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
-
-// const getUserById = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.params.id);
-//     res.send(user);
-//   } catch (err) {
-//     res.status(500).send({
-//       message: err.message,
-//     });
-//   }
-// };
+ 
 
 const getUserById = async (req, res) => {
   try {
@@ -978,82 +863,58 @@ const getUserById = async (req, res) => {
   }
 };
 
-// const updateUser = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.params.id);
-//     if (user) {
-//       user.name = req.body.name;
-//       user.email = req.body.email;
-//       user.address = req.body.address;
-//       user.phone = req.body.phone;
-//       user.image = req.body.image;
-//       const updatedUser = await user.save();
-//       const token = signInToken(updatedUser);
-//       res.send({
-//         token,
-//         _id: updatedUser._id,
-//         name: updatedUser.name,
-//         email: updatedUser.email,
-//         address: updatedUser.address,
-//         phone: updatedUser.phone,
-//         image: updatedUser.image,
-//       });
-//     }
-//   } catch (err) {
-//     res.status(404).send({
-//       message: 'Your email is not valid!',
-//     });
-//   }
-// };
+ 
 
 const updateUser = async (req, res) => {
-  console.log(">>>>>>>>>>>>>>. id", req.body);
+  console.log("Updating user:", JSON.stringify(req.body, null, 2));
 
   try {
     const userId = req.params.id;
     const user = await User.findByPk(userId);
 
     if (user) {
-      user.name = req.body.name;
-      user.email = req.body.email;
-      user.address = req.body.address;
-      user.phone = req.body.phone;
-      user.rawAddress = req.body.rawAddress;
+      // Update user fields
+      const updateData = {
+        name: req.body.name || user.name,
+        email: req.body.email || user.email,
+        phone: req.body.phone || user.phone,
+        address: req.body.address || user.address,
+        image: req.body.image || user.image,
+        opening_balance: req.body.opening_balance || user.opening_balance,
+        ntn: req.body.ntn || user.ntn,
+        strn: req.body.strn || user.strn,
+        country: req.body.country || user.country,
+        city: req.body.city || user.city,
+        rawAddress: req.body.rawAddress || user.rawAddress,
+      };
 
-      // user.image = req.body.image;
+      // Update password if provided
+      if (req.body.password) {
+        updateData.password = bcrypt.hashSync(req.body.password, 10);
+      }
 
-      const updatedUser = await user.save();
+      const updatedUser = await user.update(updateData);
+
+      // Remove password from response
+      const userResponse = updatedUser.toJSON();
+      delete userResponse.password;
 
       const token = signInToken(updatedUser);
 
-      // console.log('Updated User:', updatedUser);
-      // console.log('Success:', success);
-
-      let response = {
-        user: updatedUser,
+      res.status(200).json({
+        message: "User updated successfully!",
+        user: userResponse,
         success: true,
         token: token,
-      };
-      // console.log('response:', response);
-
-      // Send the response
-      res.send(response);
-      // res.send({
-      //   token,
-      //   _id: updatedUser._id,
-      //   name: updatedUser.name,
-      //   email: updatedUser.email,
-      //   address: updatedUser.address,
-      //   phone: updatedUser.phone,
-      //   image: updatedUser.image,
-      //   success:true
-      // });
+      });
     } else {
       res.status(404).json({ message: "User not found" });
     }
   } catch (err) {
-    res.status(404).send({
-      message: "Your email is not valid!",
+    console.error("Error updating user:", err);
+    res.status(500).json({
+      message: "Error updating user",
+      error: err.message,
     });
   }
 };
@@ -1117,6 +978,61 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+const addUser = async (req, res) => {
+  try {
+    console.log("Adding user:", JSON.stringify(req.body, null, 2));
+
+    // Check if user with this email already exists
+    const existingUser = await User.findOne({ where: { email: req.body.email } });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User with this email already exists!",
+      });
+    }
+
+    // Hash password if provided
+    let hashedPassword = null;
+    if (req.body.password) {
+      hashedPassword = bcrypt.hashSync(req.body.password, 10);
+    }
+
+    // Create new user
+    const newUser = await User.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: hashedPassword,
+      phone: req.body.phone || null,
+      address: req.body.address || "",
+      country: req.body.country || null,
+      city: req.body.city || null,
+      image: req.body.image || null,
+      opening_balance: req.body.opening_balance || null,
+      ntn:req.body.ntn ||null,
+      strn:req.body.strn ||null,
+      status: req.body.status || "active",
+      isVerified: req.body.isVerified || false,
+      remember: req.body.remember || false,
+      rawAddress: req.body.rawAddress || [],
+    });
+
+    // Remove password from response
+    const userResponse = newUser.toJSON();
+    delete userResponse.password;
+
+    res.status(201).json({
+      message: "User created successfully!",
+      user: userResponse,
+    });
+  } catch (err) {
+    console.error("Error creating user:", err);
+    res.status(500).json({
+      message: "Error creating user",
+      error: err.message,
+    });
+  }
+};
 module.exports = {
   loginUser,
   registerUser,
@@ -1132,4 +1048,5 @@ module.exports = {
   updateUserStatus,
   deleteUser,
   resetUserPassword,
+  addUser,
 };

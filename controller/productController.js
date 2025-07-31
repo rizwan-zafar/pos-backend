@@ -1,27 +1,9 @@
 const { Op } = require("sequelize");
 const Product = require("../models/Product");
+const User = require("../models/User");
 // const Admin = require("../models/Admin");
 const fs = require("fs");
 const path = require("path");
-
-// const addProduct = async (req, res) => {
-//   console.log(JSON.stringify(req.body, null, 2));
-
-//   try {
-//     // Create a new product record in the database
-//     const newProduct = await Product.create(req.body); //
-
-//     // Respond with success message
-//     res.status(200).send({
-//       message: "Product Added Successfully!",
-//     });
-//   } catch (err) {
-//     // Handle errors
-//     res.status(500).send({
-//       message: err.message,
-//     });
-//   }
-// };
 
 const addProduct = async (req, res) => {
   console.log(JSON.stringify(req.body, null, 2));
@@ -106,123 +88,6 @@ const getDiscountedProducts = async (req, res) => {
     });
   }
 };
-
-// const getAllProducts = async (req, res) => {
-//   const { title, category, price, page, limit, all, isDashboard } = req.query;
-
-//   const queryObject = {};
-
-//   if (!isDashboard) {
-//     queryObject.status = "Show";
-//   }
-
-//   let order;
-//   if (price === "new-arrival") {
-//     order = [["createdAt", "DESC"]];
-//   } else if (price === "lowest") {
-//     order = [["price", "ASC"]];
-//   } else if (price === "highest") {
-//     order = [["price", "DESC"]];
-//   } else {
-//     order = [["id", "DESC"]];
-//   }
-
-//   if (title) {
-//     queryObject[Op.or] = [
-//       { title: { [Op.like]: `%${title}%` } },
-//       { productCode: { [Op.like]: `%${title}%` } },
-//     ];
-//   }
-
-//   if (category) {
-//     const categoriesArray = category.split(",").map((cat) => cat.trim());
-//     queryObject[Op.or] = [
-//       {
-//         parent: {
-//           [Op.or]: categoriesArray.map((cat) => ({ [Op.like]: `%${cat}%` })),
-//         },
-//       },
-//       {
-//         children: {
-//           [Op.or]: categoriesArray.map((cat) => ({ [Op.like]: `%${cat}%` })),
-//         },
-//       },
-//     ];
-//   }
-
-//   try {
-//     let products;
-//     let totalDoc;
-
-//     if (all === "true") {
-//       products = await Product.findAll({
-//         where: queryObject,
-//         order: order,
-//       });
-//       totalDoc = products.length;
-//     } else {
-//       const currentPage = Number(page) || 1;
-//       const limitPerPage = Number(limit) || 10;
-//       const offset = (currentPage - 1) * limitPerPage;
-
-//       const allProducts = await Product.findAll({
-//         where: queryObject,
-//         order: order,
-//       });
-
-//       // Filter products based on variation stock
-//       // const filteredProducts = allProducts.filter((product) => {
-//       //   const variations = JSON.parse(product.variations || "[]");
-//       //   const hasStockInVariations = variations.some(
-//       //     (variation) => Number(variation.stock) > 0
-//       //   );
-//       //   return product.stock > 0 || hasStockInVariations;
-//       // });
-
-//       // console.log(">>>>>>>>> get -- products");
-//       const filteredProducts = allProducts.filter((product) => {
-//         const variations = JSON.parse(product.variations || "[]");
-//         const hasStockInVariations = variations.some(
-//           (variation) => Number(variation.stock) > 0
-//         );
-//         return product.stock > 0 || hasStockInVariations;
-//       });
-
-//       totalDoc = filteredProducts.length;
-//       // products = filteredProducts.slice(offset, offset + limitPerPage);
-//       products = filteredProducts;
-//     }
-
-//     const productsithGalleryReverse = products.map((product) => {
-//       let gallery = "[]";
-//       // console.log(">>>>>>>> BEFORE: ", product.gallery);
-
-//       try {
-//         const parsedGallery = JSON.parse(product.gallery || "[]");
-//         gallery = JSON.stringify(parsedGallery.reverse());
-//       } catch (err) {
-//         console.error("Error parsing gallery for product id:", product.id);
-//       }
-//       // console.log(">>>>>>>> AFTER: ", gallery);
-
-//       return {
-//         ...product.toJSON(),
-//         gallery,  
-//       };
-//     });
-
-//     res.send({
-//       totalDoc,
-//       limitPerPage: all === "true" ? totalDoc : Number(limit) || 10,
-//       currentPage: all === "true" ? 1 : Number(page) || 1,
-//       products: productsithGalleryReverse || "Product Not Found",
-//     });
-//   } catch (err) {
-//     res.status(500).send({
-//       message: err.message,
-//     });
-//   }
-// };
 
 const getAllProducts = async (req, res) => {
   const { title, category, price, page, limit, all, isDashboard } = req.query;
@@ -477,7 +342,16 @@ const getProductsByCategory = async (req, res) => {
 const getProductById = async (req, res) => {
   // console.log('------------',req.params);
   try {
-    const product = await Product.findByPk(req.params.id);
+    const product = await Product.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "name", "email", "phone", "address"],
+          required: false, // This makes it LEFT JOIN instead of INNER JOIN
+        },
+      ],
+    });
 
     if (product) {
       let gallery = "[]";
@@ -496,6 +370,7 @@ const getProductById = async (req, res) => {
       res.status(404).send({ message: "Product not found" });
     }
   } catch (err) {
+    console.error("Error in getProductById:", err);
     res.status(500).send({
       message: err.message,
     });

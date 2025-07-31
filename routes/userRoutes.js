@@ -15,6 +15,7 @@ const {
   resetUserPassword,
   updateUserStatus,
   verifyEmailToken,
+  addUser,
 } = require('../controller/userController');
 const {
   passwordVerificationLimit,
@@ -26,6 +27,9 @@ const {
 
 //register a user
 router.post('/register', registerUser);
+
+//add a user
+router.post('/add', addUser);
 
 router.post("/verify-email", emailVerificationLimit, verifyEmailAddress);
 router.get("/email-verification/:token", verifyEmailToken);

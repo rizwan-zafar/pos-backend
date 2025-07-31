@@ -41,6 +41,18 @@ const User = sequelize.define('user', {
   phone: {
     type: DataTypes.STRING,
     allowNull: true,
+  }, 
+  opening_balance: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  ntn: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  strn: {
+    type: DataTypes.STRING,
+    allowNull: true,
   },
   password: {
     type: DataTypes.STRING,
@@ -66,38 +78,9 @@ const User = sequelize.define('user', {
       allowNull: true,
       defaultValue: []
     },
-  // notification: {
-  //   type: DataTypes.JSON,
-  //   allowNull: true,
-  //   defaultValue: [],
-  // },
-  // seennotification: {
-  //   type: DataTypes.JSON,
-  //   allowNull: true,
-  //   defaultValue: [],
-  // },
 }, {
   timestamps: true,
 });
-// User.associate = (models) => {
-//   User.hasMany(models.UserNotification, {
-//     foreignKey: 'userId',
-//     as: 'user',
-//   });
-// };
-// User.associate = (models) => {
-//   User.hasMany(models.Order, {
-//     foreignKey: 'userId',
-//     as: 'user',
-//   });
-// };
-
-// User.associate = (models) => {
-//   User.hasMany(models.Order, {
-//     foreignKey: 'userId',
-//     as: 'user',
-//   });
-// };
 User.hasMany(Review, { foreignKey: "userId" });
 Review.belongsTo(User, { foreignKey: "userId",  as: "user" });
 

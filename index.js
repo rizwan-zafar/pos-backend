@@ -66,6 +66,42 @@ app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(cors());
 
+// Global middleware to handle image filenames
+app.use((req, res, next) => {
+  // Function to extract filename from image path/URL
+  const extractImageFilename = (imageValue) => {
+    if (!imageValue) return null;
+    
+    // If it's a full URL or path, extract just the filename
+    if (imageValue.includes('/') || imageValue.includes('\\')) {
+      return imageValue.split('/').pop().split('\\').pop();
+    }
+    
+    // If it's already just a filename, use it as is
+    return imageValue;
+  };
+
+  // Process request body for image fields
+  if (req.body) {
+    // Common image field names across your models
+    const imageFields = ['image', 'gallery', 'banner', 'video', 'photo', 'avatar', 'logo'];
+    
+    imageFields.forEach(field => {
+      if (req.body[field]) {
+        if (Array.isArray(req.body[field])) {
+          // Handle array of images (like gallery)
+          req.body[field] = req.body[field].map(img => extractImageFilename(img));
+        } else {
+          // Handle single image
+          req.body[field] = extractImageFilename(req.body[field]);
+        }
+      }
+    });
+  }
+
+  next();
+});
+
 
 
 
@@ -147,17 +183,12 @@ app.post(process.env.UPLOAD_ENDPOINT, upload, async (req, res) => {
   if (req.files && req.files.length > 0) {
     const uploadedFiles = req.files.map((file) => {
       const fileUrl = `${req.protocol}://${req.get("host")}/upload/${
-        file.mimetype.startsWith("image") ? "" : "videos"
-      }/${file.filename}`;
+        file.mimetype.startsWith("image") ? file.filename : `videos/${file.filename}`
+      }`;
       return fileUrl;
     });
 
     console.log("Uploaded Files: ", uploadedFiles);
-    // res.send({
-    //   files: req.files.map((file) => file.filename),
-    //   message: "Files uploaded successfully",
-    //   urls: uploadedFiles,
-    // });
 
     res.send({
       files: req.files.map((file) => file.filename),
