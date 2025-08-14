@@ -73,6 +73,11 @@ const User = sequelize.define('user', {
       defaultValue: "active",
       allowNull: false,
     },
+    role: {
+      type: DataTypes.ENUM("vendor", "customer"),
+      allowNull: false,
+      defaultValue: "customer"
+    },
       rawAddress: {
       type: DataTypes.JSON,
       allowNull: true,

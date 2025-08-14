@@ -29,7 +29,7 @@ const {
 router.post('/register', registerUser);
 
 //add a user
-router.post('/add', addUser);
+router.post('/add-user', addUser);
 
 router.post("/verify-email", emailVerificationLimit, verifyEmailAddress);
 router.get("/email-verification/:token", verifyEmailToken);

@@ -487,53 +487,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-// const loginUser = async (req, res) => {
-//   try {
-//     const user = await User.findOne({
-//       where: { email: req.body.email },
-//     });
-
-// if (!user) {
-//   return res.status(404).json({
-//     message: "Invalid email or password!",
-//   });
-// }
-
-// if (user && user.password) {
-
-//   const isPasswordValid = await bcrypt.compare(
-//     req.body.password,
-//     user.password
-//   );
-
-//   if (isPasswordValid) {
-
-//    if (isPasswordValid && user.status !== 'active') {
-//     return res.status(403).send({
-//       message:
-//         "Oops! It looks like your account is temporarily blocked. Please reach out to our support team.",
-//     });
-//   }
-//     const token = signInToken(user);
-//     res.send({
-//       token,
-//       user: user,
-//     });
-//   } else {
-//     res.status(401).send({
-//       message: "Invalid email or password!",
-//     });
-//   }
-// }
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send({
-//       message: "Internal server error",
-//     });
-//   }
-// };
-//////////// forget paswd email
-
 const forgetPassword = async (req, res) => {
   try {
     const user = await User.findOne({ where: { email: req.body.verifyEmail } });
@@ -623,8 +576,7 @@ const forgetPassword = async (req, res) => {
   }
 };
 
-//////////////// resetUserPassword - forget pswd
-
+ 
 const resetUserPassword = async (req, res) => {
   const { token, user_id, password } = req.body;
 
@@ -863,8 +815,6 @@ const getUserById = async (req, res) => {
   }
 };
 
- 
-
 const updateUser = async (req, res) => {
   console.log("Updating user:", JSON.stringify(req.body, null, 2));
 
@@ -873,6 +823,13 @@ const updateUser = async (req, res) => {
     const user = await User.findByPk(userId);
 
     if (user) {
+      // Validate role if provided
+      if (req.body.role && !['vendor', 'customer'].includes(req.body.role)) {
+        return res.status(400).json({
+          message: 'Invalid role value. Use "vendor" or "customer".'
+        });
+      }
+
       // Update user fields
       const updateData = {
         name: req.body.name || user.name,
@@ -886,6 +843,7 @@ const updateUser = async (req, res) => {
         country: req.body.country || user.country,
         city: req.body.city || user.city,
         rawAddress: req.body.rawAddress || user.rawAddress,
+        role: req.body.role || user.role, // Add role field support
       };
 
       // Update password if provided
@@ -980,6 +938,8 @@ const deleteUser = async (req, res) => {
 };
 
 const addUser = async (req, res) => {
+
+  console.log("req",req)
   try {
     console.log("Adding user:", JSON.stringify(req.body, null, 2));
 
@@ -989,6 +949,13 @@ const addUser = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         message: "User with this email already exists!",
+      });
+    }
+
+    // Validate role if provided
+    if (req.body.role && !['vendor', 'customer'].includes(req.body.role)) {
+      return res.status(400).json({
+        message: 'Invalid role value. Use "vendor" or "customer".'
       });
     }
 
@@ -1015,6 +982,7 @@ const addUser = async (req, res) => {
       isVerified: req.body.isVerified || false,
       remember: req.body.remember || false,
       rawAddress: req.body.rawAddress || [],
+      role: req.body.role || 'customer', // Add role field
     });
 
     // Remove password from response
@@ -1033,6 +1001,7 @@ const addUser = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   loginUser,
   registerUser,
